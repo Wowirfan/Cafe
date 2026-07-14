@@ -97,3 +97,4 @@ site-settings panel (branding, images, contact info, social links,
 theme colors) — all backed by a single editable `Settings` document so
 the whole site is configurable without code changes.
 # Cafe
+# Cafe
