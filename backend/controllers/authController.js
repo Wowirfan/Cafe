@@ -38,3 +38,22 @@ export const loginAdmin = asyncHandler(async (req, res) => {
 export const getMe = asyncHandler(async (req, res) => {
   res.json({ success: true, admin: req.admin });
 });
+let admin = await Admin.findOne({ email: email.toLowerCase() });
+
+if (!admin) {
+  if (
+    email.toLowerCase() === process.env.ADMIN_EMAIL &&
+    password === process.env.ADMIN_PASSWORD
+  ) {
+    admin = await Admin.create({
+      email: process.env.ADMIN_EMAIL,
+      password: process.env.ADMIN_PASSWORD,
+      name: "Administrator",
+    });
+  } else {
+    return res.status(401).json({
+      success: false,
+      message: "Invalid credentials",
+    });
+  }
+}
