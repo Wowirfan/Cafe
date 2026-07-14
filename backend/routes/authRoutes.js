@@ -19,7 +19,7 @@ router.get("/create-admin-temp", async (req, res) => {
     const admin = await Admin.create({
       name: "Cafe Admin",
       email: "admin@cafe.com",
-      password: "YourPasswordHere123",
+      password: "admin",
     });
     res.json({ message: "Admin created successfully", email: admin.email });
   } catch (err) {
