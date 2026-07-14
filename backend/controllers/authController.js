@@ -18,42 +18,51 @@ export const loginAdmin = asyncHandler(async (req, res) => {
     throw new Error("Please provide email and password");
   }
 
-  const admin = await Admin.findOne({ email: email.toLowerCase() });
+  let admin = await Admin.findOne({
+    email: email.toLowerCase(),
+  });
 
-  if (admin && (await admin.matchPassword(password))) {
-    res.json({
-      success: true,
-      admin: { id: admin._id, name: admin.name, email: admin.email },
-      token: generateToken(admin._id),
-    });
-  } else {
+  // Auto create admin on first login
+  if (!admin) {
+    if (
+      email.toLowerCase() === process.env.ADMIN_EMAIL.toLowerCase() &&
+      password === process.env.ADMIN_PASSWORD
+    ) {
+      admin = await Admin.create({
+        name: "Administrator",
+        email: process.env.ADMIN_EMAIL,
+        password: process.env.ADMIN_PASSWORD,
+      });
+    } else {
+      res.status(401);
+      throw new Error("Invalid email or password");
+    }
+  }
+
+  const isMatch = await admin.matchPassword(password);
+
+  if (!isMatch) {
     res.status(401);
     throw new Error("Invalid email or password");
   }
+
+  res.json({
+    success: true,
+    admin: {
+      id: admin._id,
+      name: admin.name,
+      email: admin.email,
+    },
+    token: generateToken(admin._id),
+  });
 });
 
 // @desc    Get logged-in admin profile
 // @route   GET /api/auth/me
 // @access  Private
 export const getMe = asyncHandler(async (req, res) => {
-  res.json({ success: true, admin: req.admin });
+  res.json({
+    success: true,
+    admin: req.admin,
+  });
 });
-let admin = await Admin.findOne({ email: email.toLowerCase() });
-
-if (!admin) {
-  if (
-    email.toLowerCase() === process.env.ADMIN_EMAIL &&
-    password === process.env.ADMIN_PASSWORD
-  ) {
-    admin = await Admin.create({
-      email: process.env.ADMIN_EMAIL,
-      password: process.env.ADMIN_PASSWORD,
-      name: "Administrator",
-    });
-  } else {
-    return res.status(401).json({
-      success: false,
-      message: "Invalid credentials",
-    });
-  }
-}
